@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ReturnIQ — Why Are Customers Returning Your Product?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet"/>
+<style>
+/* ── RESET & BASE ─────────────────────────────────────── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:       #080810;
+  --bg2:      #0e0e1a;
+  --bg3:      #13131f;
+  --border:   #1e1e30;
+  --accent:   #ff3d5a;
+  --accent2:  #ff7a45;
+  --blue:     #3b82f6;
+  --purple:   #8b5cf6;
+  --green:    #10b981;
+  --yellow:   #f59e0b;
+  --text:     #e2e8f0;
+  --muted:    #64748b;
+  --mono:     'JetBrains Mono', monospace;
+  --display:  'Syne', sans-serif;
+  --serif:    'Lora', serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--display);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── CUSTOM CURSOR ────────────────────────────────────── */
+.cursor {
+  width: 12px; height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  position: fixed; top:0; left:0;
+  pointer-events: none; z-index: 9999;
+  transition: transform 0.15s ease;
+  mix-blend-mode: exclusion;
+}
+.cursor-ring {
+  width: 36px; height: 36px;
+  border: 1px solid rgba(255,61,90,0.5);
+  border-radius: 50%;
+  position: fixed; top:0; left:0;
+  pointer-events: none; z-index: 9998;
+  transition: transform 0.08s ease, width 0.2s, height 0.2s;
+}
+
+/* ── NOISE TEXTURE OVERLAY ────────────────────────────── */
+body::before {
+  content:'';
+  position: fixed; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity:0.4;
+}
+
+/* ── NAV ──────────────────────────────────────────────── */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  display: flex; align-items:center; justify-content:space-between;
+  padding: 18px 60px;
+  background: rgba(8,8,16,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  font-family: var(--mono);
+  font-size: 1rem; font-weight:600;
+  color: #fff; letter-spacing:2px;
+  display:flex; align-items:center; gap:10px;
+}
+.nav-logo-dot {
+  width:8px; height:8px; border-radius:50%;
+  background: var(--accent);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(255,61,90,0.6); }
+  50%      { box-shadow: 0 0 0 8px rgba(255,61,90,0); }
+}
+.nav-links { display:flex; gap:32px; list-style:none; }
+.nav-links a {
+  font-family: var(--mono); font-size:0.78rem; letter-spacing:1px;
+  color: var(--muted); text-decoration:none; text-transform:uppercase;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color:#fff; }
+.nav-cta {
+  background: var(--accent);
+  color:#fff !important; padding:9px 22px;
+  border-radius:6px; font-weight:600;
+  transition: opacity 0.2s !important;
+}
+.nav-cta:hover { opacity:0.85 !important; color:#fff !important; }
+
+/* ── HERO ─────────────────────────────────────────────── */
+.hero {
+  min-height: 100vh;
+  display: flex; align-items:center;
+  padding: 120px 60px 80px;
+  position: relative; overflow:hidden;
+}
+
+/* animated grid background */
+.hero-grid {
+  position: absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(255,61,90,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,61,90,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridMove 20s linear infinite;
+}
+@keyframes gridMove {
+  0%   { background-position: 0 0; }
+  100% { background-position: 60px 60px; }
+}
+
+/* radial glow */
+.hero-glow {
+  position:absolute; top:-20%; right:-10%;
+  width:700px; height:700px; border-radius:50%;
+  background: radial-gradient(circle, rgba(255,61,90,0.08) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero-glow2 {
+  position:absolute; bottom:-20%; left:-5%;
+  width:500px; height:500px; border-radius:50%;
+  background: radial-gradient(circle, rgba(59,130,246,0.07) 0%, transparent 70%);
+  pointer-events:none;
+}
+
+.hero-inner {
+  position:relative; z-index:2;
+  max-width: 760px;
+}
+
+.hero-eyebrow {
+  font-family: var(--mono); font-size:0.72rem; letter-spacing:3px;
+  text-transform:uppercase; color: var(--accent);
+  margin-bottom:20px;
+  display:flex; align-items:center; gap:12px;
+  opacity:0; animation: fadeUp 0.6s 0.1s forwards;
+}
+.hero-eyebrow::before {
+  content:''; width:32px; height:1px; background:var(--accent);
+}
+
+.hero-title {
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  font-weight: 800; line-height:1.05;
+  letter-spacing: -1px; margin-bottom:24px;
+  opacity:0; animation: fadeUp 0.7s 0.2s forwards;
+}
+.hero-title em {
+  font-style:normal; color: var(--accent);
+  position:relative;
+}
+.hero-title em::after {
+  content:'';
+  position:absolute; bottom:-4px; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+.hero-sub {
+  font-family: var(--serif); font-size:1.15rem;
+  color: var(--muted); line-height:1.7; max-width:560px;
+  margin-bottom:40px;
+  opacity:0; animation: fadeUp 0.7s 0.35s forwards;
+}
+
+.hero-actions {
+  display:flex; gap:16px; align-items:center; flex-wrap:wrap;
+  opacity:0; animation: fadeUp 0.7s 0.5s forwards;
+}
+
+.btn-primary {
+  display:inline-flex; align-items:center; gap:10px;
+  background: var(--accent); color:#fff;
+  padding:14px 32px; border-radius:8px;
+  font-family: var(--mono); font-weight:600; font-size:0.88rem;
+  letter-spacing:1px; text-decoration:none; text-transform:uppercase;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 30px rgba(255,61,90,0.3);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 50px rgba(255,61,90,0.45);
+}
+.btn-primary svg { transition: transform 0.2s; }
+.btn-primary:hover svg { transform: translateX(4px); }
+
+.btn-secondary {
+  display:inline-flex; align-items:center; gap:8px;
+  color: var(--muted); font-family:var(--mono);
+  font-size:0.82rem; letter-spacing:1px;
+  text-decoration:none; text-transform:uppercase;
+  transition: color 0.2s;
+}
+.btn-secondary:hover { color:#fff; }
+
+/* scrolling ticker */
+.hero-ticker {
+  position:absolute; bottom:0; left:0; right:0; z-index:2;
+  border-top:1px solid var(--border);
+  overflow:hidden; padding:12px 0;
+  background: rgba(8,8,16,0.8);
+  opacity:0; animation: fadeIn 0.6s 0.9s forwards;
+}
+.ticker-track {
+  display:flex; gap:60px;
+  animation: ticker 25s linear infinite;
+  white-space:nowrap;
+}
+.ticker-item {
+  font-family:var(--mono); font-size:0.72rem; letter-spacing:2px;
+  text-transform:uppercase; color:var(--muted);
+  display:flex; align-items:center; gap:14px;
+}
+.ticker-item span { color: var(--accent); }
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── STATS BAND ───────────────────────────────────────── */
+.stats-band {
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  display:grid; grid-template-columns: repeat(4, 1fr);
+  position:relative; z-index:2;
+}
+.stat-item {
+  padding: 40px 48px;
+  border-right:1px solid var(--border);
+  opacity:0; animation: fadeUp 0.6s forwards;
+}
+.stat-item:nth-child(1){animation-delay:0.1s;}
+.stat-item:nth-child(2){animation-delay:0.2s;}
+.stat-item:nth-child(3){animation-delay:0.3s;}
+.stat-item:nth-child(4){animation-delay:0.4s; border-right:none;}
+.stat-num {
+  font-family:var(--mono); font-size:2.8rem; font-weight:600;
+  line-height:1; margin-bottom:8px;
+}
+.stat-label {
+  font-size:0.72rem; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--muted);
+}
+
+/* ── HOW IT WORKS ─────────────────────────────────────── */
+.section {
+  padding: 100px 60px;
+  position:relative;
+}
+.section-label {
+  font-family:var(--mono); font-size:0.7rem; letter-spacing:3px;
+  text-transform:uppercase; color:var(--accent);
+  margin-bottom:16px;
+  display:flex; align-items:center; gap:12px;
+}
+.section-label::before { content:''; width:24px; height:1px; background:var(--accent); }
+
+.section-title {
+  font-size:clamp(2rem, 4vw, 3rem); font-weight:800;
+  line-height:1.1; margin-bottom:60px; letter-spacing:-0.5px;
+}
+
+/* steps */
+.steps {
+  display:grid; grid-template-columns: repeat(4,1fr);
+  gap:2px; background: var(--border);
+  border:1px solid var(--border); border-radius:12px; overflow:hidden;
+}
+.step {
+  background: var(--bg2);
+  padding: 36px 32px;
+  position:relative; overflow:hidden;
+  transition: background 0.3s;
+}
+.step:hover { background: var(--bg3); }
+.step::before {
+  content: attr(data-n);
+  position:absolute; top:16px; right:20px;
+  font-family:var(--mono); font-size:3.5rem; font-weight:700;
+  color: rgba(255,255,255,0.03); line-height:1;
+}
+.step-icon {
+  width:44px; height:44px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  margin-bottom:20px; font-size:1.3rem;
+}
+.step-title {
+  font-size:0.95rem; font-weight:700; margin-bottom:8px; color:#fff;
+}
+.step-desc {
+  font-family:var(--serif); font-size:0.88rem;
+  color:var(--muted); line-height:1.65;
+}
+.step-tag {
+  margin-top:14px; display:inline-block;
+  font-family:var(--mono); font-size:0.65rem; letter-spacing:1px;
+  padding:3px 10px; border-radius:20px; text-transform:uppercase;
+}
+
+/* ── DEMO PREVIEW SECTION ─────────────────────────────── */
+.demo-section {
+  padding:80px 60px;
+  background: var(--bg2);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+}
+.demo-inner {
+  max-width:900px; margin:0 auto;
+}
+.demo-terminal {
+  background:#060610; border:1px solid var(--border);
+  border-radius:12px; overflow:hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+}
+.terminal-bar {
+  background:#0e0e1a; padding:12px 18px;
+  display:flex; align-items:center; gap:8px;
+  border-bottom:1px solid var(--border);
+}
+.term-dot { width:12px; height:12px; border-radius:50%; }
+.term-dot:nth-child(1){background:#ef4444;}
+.term-dot:nth-child(2){background:#f59e0b;}
+.term-dot:nth-child(3){background:#22c55e;}
+.terminal-title {
+  font-family:var(--mono); font-size:0.72rem; color:var(--muted);
+  margin-left:auto; margin-right:auto; letter-spacing:1px;
+}
+.terminal-body { padding:28px 32px; }
+.term-line {
+  font-family:var(--mono); font-size:0.82rem; line-height:1.8;
+  margin-bottom:4px;
+}
+.term-prompt { color:var(--accent); }
+.term-cmd    { color:#e2e8f0; }
+.term-out    { color:var(--muted); }
+.term-val    { color:#4dffa6; }
+.term-warn   { color:var(--yellow); }
+.term-high   { color:var(--accent); font-weight:600; }
+
+/* insight card */
+.insight-card {
+  margin-top:24px;
+  background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(255,61,90,0.08));
+  border:1px solid rgba(139,92,246,0.3); border-left:3px solid var(--purple);
+  border-radius:10px; padding:18px 22px;
+}
+.insight-card-label {
+  font-family:var(--mono); font-size:0.65rem; letter-spacing:2px;
+  text-transform:uppercase; color:var(--purple); margin-bottom:8px;
+}
+.insight-card-text {
+  font-family:var(--serif); font-size:0.95rem;
+  color:#e2e8f0; line-height:1.6;
+}
+
+/* ── COMPLAINT THEMES ─────────────────────────────────── */
+.themes-section { padding:100px 60px; }
+.themes-grid {
+  display:grid; grid-template-columns: repeat(3,1fr);
+  gap:16px;
+}
+.theme-card {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; padding:28px 24px;
+  position:relative; overflow:hidden;
+  transition: transform 0.25s, border-color 0.25s;
+  cursor:default;
+}
+.theme-card:hover {
+  transform: translateY(-4px);
+}
+.theme-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+}
+.tc-sizing::before   { background:var(--yellow); }
+.tc-quality::before  { background:var(--accent); }
+.tc-listing::before  { background:#ec4899; }
+.tc-packaging::before{ background:var(--purple); }
+.tc-delivery::before { background:var(--blue); }
+.tc-service::before  { background:#06b6d4; }
+
+.theme-pct {
+  font-family:var(--mono); font-size:2rem; font-weight:600;
+  margin-bottom:6px; line-height:1;
+}
+.theme-name {
+  font-size:0.8rem; letter-spacing:1px; text-transform:uppercase;
+  color:var(--muted); margin-bottom:14px;
+}
+.theme-insight {
+  font-family:var(--serif); font-size:0.85rem;
+  color:#94a3b8; line-height:1.6;
+}
+.theme-bar-bg {
+  margin-top:16px; height:3px;
+  background:rgba(255,255,255,0.06); border-radius:2px;
+}
+.theme-bar { height:3px; border-radius:2px; }
+
+/* ── WHY IT MATTERS ───────────────────────────────────── */
+.why-section {
+  padding:100px 60px;
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+}
+.why-grid {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:80px; align-items:center;
+}
+.why-list { list-style:none; display:flex; flex-direction:column; gap:20px; }
+.why-item {
+  display:flex; gap:16px; align-items:flex-start;
+  padding:20px; border:1px solid var(--border);
+  border-radius:10px; background:var(--bg);
+  transition: border-color 0.2s;
+}
+.why-item:hover { border-color: rgba(255,61,90,0.3); }
+.why-icon {
+  width:40px; height:40px; border-radius:8px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+}
+.why-item-title { font-size:0.9rem; font-weight:700; margin-bottom:4px; }
+.why-item-desc  { font-family:var(--serif); font-size:0.84rem; color:var(--muted); line-height:1.55; }
+
+/* cost chart */
+.cost-card {
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:14px; padding:36px;
+}
+.cost-title {
+  font-family:var(--mono); font-size:0.7rem; letter-spacing:2px;
+  text-transform:uppercase; color:var(--muted); margin-bottom:24px;
+}
+.cost-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:14px 0; border-bottom:1px solid var(--border);
+}
+.cost-row:last-child { border-bottom:none; }
+.cost-label { font-size:0.88rem; color:#94a3b8; }
+.cost-value { font-family:var(--mono); font-size:0.9rem; font-weight:600; }
+.cost-bar-wrap { flex:1; margin:0 20px; height:4px; background:rgba(255,255,255,0.06); border-radius:2px; }
+.cost-bar-fill { height:4px; border-radius:2px; background:var(--accent); }
+
+/* ── TECH STACK ───────────────────────────────────────── */
+.tech-section { padding:80px 60px; }
+.tech-grid {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:16px;
+}
+.tech-card {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:10px; padding:22px 20px;
+  text-align:center;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.tech-card:hover { border-color:rgba(255,61,90,0.3); transform:translateY(-3px); }
+.tech-icon { font-size:1.8rem; margin-bottom:10px; }
+.tech-name { font-family:var(--mono); font-size:0.8rem; font-weight:600; color:#fff; margin-bottom:4px; }
+.tech-role { font-size:0.75rem; color:var(--muted); }
+
+/* ── CTA SECTION ──────────────────────────────────────── */
+.cta-section {
+  padding:120px 60px;
+  text-align:center; position:relative; overflow:hidden;
+}
+.cta-glow {
+  position:absolute; top:50%; left:50%;
+  transform: translate(-50%, -50%);
+  width:600px; height:300px; border-radius:50%;
+  background: radial-gradient(ellipse, rgba(255,61,90,0.12) 0%, transparent 70%);
+  pointer-events:none;
+}
+.cta-label {
+  font-family:var(--mono); font-size:0.7rem; letter-spacing:3px;
+  text-transform:uppercase; color:var(--accent);
+  margin-bottom:20px;
+}
+.cta-title {
+  font-size:clamp(2.5rem,5vw,4rem); font-weight:800;
+  line-height:1.1; letter-spacing:-1px;
+  margin-bottom:20px;
+}
+.cta-sub {
+  font-family:var(--serif); color:var(--muted);
+  font-size:1.05rem; max-width:460px;
+  margin:0 auto 48px;
+}
+
+/* ── FOOTER ───────────────────────────────────────────── */
+footer {
+  border-top:1px solid var(--border);
+  padding:32px 60px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.footer-logo { font-family:var(--mono); font-size:0.85rem; letter-spacing:2px; }
+.footer-copy  { font-family:var(--mono); font-size:0.7rem; color:var(--muted); letter-spacing:1px; }
+.footer-links { display:flex; gap:24px; list-style:none; }
+.footer-links a { font-family:var(--mono); font-size:0.7rem; letter-spacing:1px; color:var(--muted); text-decoration:none; }
+.footer-links a:hover { color:#fff; }
+
+/* ── ANIMATIONS ───────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity:0; }
+  to   { opacity:1; }
+}
+
+.reveal {
+  opacity:0; transform:translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity:1; transform:none; }
+
+/* ── RESPONSIVE ───────────────────────────────────────── */
+@media(max-width:900px){
+  nav { padding:16px 24px; }
+  .nav-links { display:none; }
+  .hero { padding:100px 24px 80px; }
+  .stats-band { grid-template-columns:1fr 1fr; }
+  .stat-item:nth-child(2){ border-right:none; }
+  .section,.demo-section,.why-section,.tech-section,.cta-section,.themes-section { padding:60px 24px; }
+  .steps { grid-template-columns:1fr; }
+  .themes-grid { grid-template-columns:1fr; }
+  .why-grid { grid-template-columns:1fr; gap:40px; }
+  .tech-grid { grid-template-columns:repeat(2,1fr); }
+  footer { flex-direction:column; gap:16px; text-align:center; }
+}
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    RETURNIQ
+  </div>
+  <ul class="nav-links">
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#themes">Insights</a></li>
+    <li><a href="#tech">Tech Stack</a></li>
+    <li><a href="#demo" class="nav-cta">Try Demo →</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+
+  <div class="hero-inner">
+    <div class="hero-eyebrow">AI Intelligence Agent for E-commerce Sellers</div>
+    <h1 class="hero-title">
+      Why are customers<br>
+      <em>returning</em> your product?
+    </h1>
+    <p class="hero-sub">
+      Paste any Amazon or Flipkart link. ReturnIQ scrapes public reviews,
+      runs LLM-style clustering on 1–3 star feedback, and delivers
+      a prioritized fix plan in seconds.
+    </p>
+    <div class="hero-actions">
+      <a href="#demo" class="btn-primary">
+        Try Live Demo
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#how" class="btn-secondary">
+        See how it works ↓
+      </a>
+    </div>
+  </div>
+
+  <!-- ticker -->
+  <div class="hero-ticker">
+    <div class="ticker-track" id="ticker">
+      <div class="ticker-item">Returns cost sellers <span>₹4,200 Cr/year</span></div>
+      <div class="ticker-item">Fashion returns <span>25–30%</span> in India</div>
+      <div class="ticker-item">Sentiment Analysis <span>×</span> Pattern Detection</div>
+      <div class="ticker-item">LLM Clustering <span>+</span> Actionable Insights</div>
+      <div class="ticker-item">Scraping <span>+</span> NLP <span>+</span> Data Viz</div>
+      <div class="ticker-item">Returns cost sellers <span>₹4,200 Cr/year</span></div>
+      <div class="ticker-item">Fashion returns <span>25–30%</span> in India</div>
+      <div class="ticker-item">Sentiment Analysis <span>×</span> Pattern Detection</div>
+      <div class="ticker-item">LLM Clustering <span>+</span> Actionable Insights</div>
+      <div class="ticker-item">Scraping <span>+</span> NLP <span>+</span> Data Viz</div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-band">
+  <div class="stat-item">
+    <div class="stat-num" style="color:var(--accent)" data-target="30">0%</div>
+    <div class="stat-label">Return rate in Indian fashion e-commerce</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" style="color:var(--yellow)" data-target="5">0</div>
+    <div class="stat-label">Complaint themes auto-detected</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" style="color:var(--green)" data-target="4">0</div>
+    <div class="stat-label">Data sources scraped simultaneously</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" style="color:var(--blue)" data-target="60">0s</div>
+    <div class="stat-label">From product link to full report</div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+  <div class="section-label reveal">The Pipeline</div>
+  <h2 class="section-title reveal">How ReturnIQ works</h2>
+
+  <div class="steps reveal">
+    <div class="step" data-n="01">
+      <div class="step-icon" style="background:rgba(255,61,90,0.12)">🔗</div>
+      <div class="step-title">Paste product link</div>
+      <div class="step-desc">Drop any Amazon.in, Flipkart, or amzn.in short link. ReturnIQ auto-detects the platform and extracts the product name.</div>
+      <span class="step-tag" style="background:rgba(255,61,90,0.1);color:var(--accent)">Web Scraping</span>
+    </div>
+    <div class="step" data-n="02">
+      <div class="step-icon" style="background:rgba(59,130,246,0.12)">🌐</div>
+      <div class="step-title">Multi-source collection</div>
+      <div class="step-desc">Simultaneously scrapes Amazon / Flipkart reviews, Reddit discussions, YouTube comments, and Google Shopping snippets.</div>
+      <span class="step-tag" style="background:rgba(59,130,246,0.1);color:var(--blue)">4 Sources</span>
+    </div>
+    <div class="step" data-n="03">
+      <div class="step-icon" style="background:rgba(139,92,246,0.12)">🧠</div>
+      <div class="step-title">LLM clustering</div>
+      <div class="step-desc">Sentence-transformer embeddings group 1–3 star reviews by meaning, not just keywords. Clusters map to complaint themes automatically.</div>
+      <span class="step-tag" style="background:rgba(139,92,246,0.1);color:var(--purple)">NLP + ML</span>
+    </div>
+    <div class="step" data-n="04">
+      <div class="step-icon" style="background:rgba(16,185,129,0.12)">📋</div>
+      <div class="step-title">Actionable report</div>
+      <div class="step-desc">"38% of negative reviews say the color doesn't match the listing photo. Update your product images with natural lighting."</div>
+      <span class="step-tag" style="background:rgba(16,185,129,0.1);color:var(--green)">Insights</span>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO TERMINAL -->
+<section class="demo-section" id="demo">
+  <div class="demo-inner">
+    <div class="section-label reveal" style="margin-bottom:16px">Live Output</div>
+    <h2 class="section-title reveal" style="margin-bottom:32px">What the report looks like</h2>
+
+    <div class="demo-terminal reveal">
+      <div class="terminal-bar">
+        <div class="term-dot"></div>
+        <div class="term-dot"></div>
+        <div class="term-dot"></div>
+        <div class="terminal-title">returniq — analysis output</div>
+      </div>
+      <div class="terminal-body">
+        <div class="term-line"><span class="term-prompt">$</span> <span class="term-cmd">returniq analyze "https://amzn.in/d/0csRfEjE"</span></div>
+        <div class="term-line term-out">→ Expanding short URL... done</div>
+        <div class="term-line term-out">→ Product: <span class="term-val">boAt Rockerz 255 Pro+ Bluetooth Headset</span></div>
+        <div class="term-line term-out">→ Scraping Amazon reviews (3 pages)... <span class="term-warn">blocked</span></div>
+        <div class="term-line term-out">→ Fetching Reddit... <span class="term-val">89 reviews found</span></div>
+        <div class="term-line term-out">→ Fetching YouTube... <span class="term-val">20 comments found</span></div>
+        <div class="term-line term-out">→ Running sentiment analysis... <span class="term-val">done</span></div>
+        <div class="term-line term-out">→ LLM clustering (sentence-transformers)... <span class="term-val">5 clusters</span></div>
+        <div class="term-line" style="margin-top:12px">
+          <span class="term-out">NEGATIVE:</span> <span class="term-high">62%</span>
+          <span class="term-out" style="margin-left:16px">NEUTRAL:</span> <span style="color:var(--blue)">21%</span>
+          <span class="term-out" style="margin-left:16px">POSITIVE:</span> <span style="color:var(--green)">17%</span>
+        </div>
+        <div class="term-line term-out" style="margin-top:8px">TOP COMPLAINT: <span class="term-high">Product Quality (38%)</span> → <span style="color:var(--yellow)">HIGH PRIORITY</span></div>
+
+        <div class="insight-card">
+          <div class="insight-card-label">Key Insight</div>
+          <div class="insight-card-text">
+            38% of negative reviews complain about product quality — customers report the item broke,
+            felt cheap, or stopped working shortly after purchase.
+            → <strong>Source better quality materials from certified suppliers.</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPLAINT THEMES -->
+<section class="themes-section" id="themes">
+  <div class="section-label reveal">Pattern Detection</div>
+  <h2 class="section-title reveal">5 complaint themes detected automatically</h2>
+
+  <div class="themes-grid reveal">
+    <div class="theme-card tc-quality">
+      <div class="theme-pct" style="color:var(--accent)">38%</div>
+      <div class="theme-name">Product Quality</div>
+      <div class="theme-insight">"Broke after 2 days. Very poor build quality. Nothing like what was advertised."</div>
+      <div class="theme-bar-bg"><div class="theme-bar" style="width:38%;background:var(--accent)"></div></div>
+    </div>
+    <div class="theme-card tc-listing">
+      <div class="theme-pct" style="color:#ec4899">27%</div>
+      <div class="theme-name">Misleading Listing</div>
+      <div class="theme-insight">"Color in photos looks premium but what I received was completely different."</div>
+      <div class="theme-bar-bg"><div class="theme-bar" style="width:27%;background:#ec4899"></div></div>
+    </div>
+    <div class="theme-card tc-sizing">
+      <div class="theme-pct" style="color:var(--yellow)">18%</div>
+      <div class="theme-name">Sizing / Fit Issue</div>
+      <div class="theme-insight">"Ordered Medium. Size chart is completely wrong. Fits like an XL."</div>
+      <div class="theme-bar-bg"><div class="theme-bar" style="width:18%;background:var(--yellow)"></div></div>
+    </div>
+    <div class="theme-card tc-packaging">
+      <div class="theme-pct" style="color:var(--purple)">10%</div>
+      <div class="theme-name">Packaging Issue</div>
+      <div class="theme-insight">"Box arrived completely crushed. Product was scratched inside."</div>
+      <div class="theme-bar-bg"><div class="theme-bar" style="width:10%;background:var(--purple)"></div></div>
+    </div>
+    <div class="theme-card tc-delivery">
+      <div class="theme-pct" style="color:var(--blue)">7%</div>
+      <div class="theme-name">Delivery / Logistics</div>
+      <div class="theme-insight">"Took 3 weeks. No tracking updates. Customer service was completely unresponsive."</div>
+      <div class="theme-bar-bg"><div class="theme-bar" style="width:7%;background:var(--blue)"></div></div>
+    </div>
+    <div class="theme-card tc-service" style="display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;background:var(--bg);border-style:dashed;">
+      <div style="font-size:1.6rem;margin-bottom:12px">🔗</div>
+      <div style="font-family:var(--mono);font-size:0.8rem;color:var(--muted);margin-bottom:16px">Paste your product link to see real data for your product</div>
+      <a href="#demo" class="btn-primary" style="font-size:0.75rem;padding:10px 20px">Try it live →</a>
+    </div>
+  </div>
+</section>
+
+<!-- WHY IT MATTERS -->
+<section class="why-section">
+  <div class="why-grid">
+    <div>
+      <div class="section-label reveal">The Problem</div>
+      <h2 class="section-title reveal" style="margin-bottom:32px">Every return costs sellers money</h2>
+      <ul class="why-list">
+        <li class="why-item reveal">
+          <div class="why-icon" style="background:rgba(255,61,90,0.1)">📦</div>
+          <div>
+            <div class="why-item-title">Reverse Shipping</div>
+            <div class="why-item-desc">₹80–250 per returned item in courier fees alone, paid by the seller.</div>
+          </div>
+        </li>
+        <li class="why-item reveal">
+          <div class="why-icon" style="background:rgba(245,158,11,0.1)">🏭</div>
+          <div>
+            <div class="why-item-title">Restocking & Inspection</div>
+            <div class="why-item-desc">Returned items must be inspected, repackaged, or discarded — adding hidden labour costs.</div>
+          </div>
+        </li>
+        <li class="why-item reveal">
+          <div class="why-icon" style="background:rgba(139,92,246,0.1)">💸</div>
+          <div>
+            <div class="why-item-title">Refund Processing</div>
+            <div class="why-item-desc">Platform fees are rarely refunded. Sellers absorb payment gateway + marketplace commission.</div>
+          </div>
+        </li>
+        <li class="why-item reveal">
+          <div class="why-icon" style="background:rgba(59,130,246,0.1)">📊</div>
+          <div>
+            <div class="why-item-title">Listing Suppression</div>
+            <div class="why-item-desc">High return rates lower your seller score, reducing visibility in search results.</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div class="cost-card reveal">
+      <div class="cost-title">Cost per 100 returns — typical Indian seller</div>
+      <div class="cost-row">
+        <div class="cost-label">Reverse shipping</div>
+        <div class="cost-bar-wrap"><div class="cost-bar-fill" style="width:80%"></div></div>
+        <div class="cost-value" style="color:var(--accent)">₹20,000</div>
+      </div>
+      <div class="cost-row">
+        <div class="cost-label">Restocking labour</div>
+        <div class="cost-bar-wrap"><div class="cost-bar-fill" style="width:55%;background:var(--yellow)"></div></div>
+        <div class="cost-value" style="color:var(--yellow)">₹8,000</div>
+      </div>
+      <div class="cost-row">
+        <div class="cost-label">Damaged goods</div>
+        <div class="cost-bar-wrap"><div class="cost-bar-fill" style="width:65%;background:var(--purple)"></div></div>
+        <div class="cost-value" style="color:var(--purple)">₹12,000</div>
+      </div>
+      <div class="cost-row">
+        <div class="cost-label">Lost margin + fees</div>
+        <div class="cost-bar-wrap"><div class="cost-bar-fill" style="width:40%;background:var(--blue)"></div></div>
+        <div class="cost-value" style="color:var(--blue)">₹6,000</div>
+      </div>
+      <div class="cost-row" style="border-top:1px solid var(--border);padding-top:16px;margin-top:8px">
+        <div class="cost-label" style="font-weight:700;color:#fff">Total loss</div>
+        <div class="cost-bar-wrap"></div>
+        <div class="cost-value" style="color:var(--accent);font-size:1.2rem">₹46,000</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section class="tech-section" id="tech">
+  <div class="section-label reveal">Built With</div>
+  <h2 class="section-title reveal">Technology stack</h2>
+  <div class="tech-grid reveal">
+    <div class="tech-card">
+      <div class="tech-icon">🐍</div>
+      <div class="tech-name">Python</div>
+      <div class="tech-role">Core language</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">⚡</div>
+      <div class="tech-name">Streamlit</div>
+      <div class="tech-role">Dashboard UI</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🤗</div>
+      <div class="tech-name">Sentence Transformers</div>
+      <div class="tech-role">LLM Clustering</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">📊</div>
+      <div class="tech-name">Plotly</div>
+      <div class="tech-role">Data visualization</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🔍</div>
+      <div class="tech-name">BeautifulSoup</div>
+      <div class="tech-role">Web scraping</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🧮</div>
+      <div class="tech-name">Scikit-learn</div>
+      <div class="tech-role">KMeans clustering</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">💬</div>
+      <div class="tech-name">TextBlob</div>
+      <div class="tech-role">Sentiment analysis</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🌐</div>
+      <div class="tech-name">Reddit + YouTube</div>
+      <div class="tech-role">Multi-source data</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-glow"></div>
+  <div class="cta-label reveal">Get started</div>
+  <h2 class="cta-title reveal">Paste a link.<br>Get your answers.</h2>
+  <p class="cta-sub reveal">No signup. No credit card. Just paste your Amazon or Flipkart product link and get a full returns intelligence report.</p>
+  <div class="reveal">
+    <a href="http://localhost:8501" class="btn-primary" style="display:inline-flex;font-size:1rem;padding:16px 40px">
+      Launch ReturnIQ
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">RETURNIQ</div>
+  <div class="footer-copy">Built for Problem Statement 3 — E-commerce Return Intelligence</div>
+  <ul class="footer-links">
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#tech">Tech Stack</a></li>
+    <li><a href="http://localhost:8501">Live Demo</a></li>
+  </ul>
+</footer>
+
+<script>
+// ── Cursor ──────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring   = document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e=>{
+  mx=e.clientX; my=e.clientY;
+  cursor.style.transform=`translate(${mx-6}px,${my-6}px)`;
+});
+function animateRing(){
+  rx+=(mx-rx-18)*0.12; ry+=(my-ry-18)*0.12;
+  ring.style.transform=`translate(${rx}px,${ry}px)`;
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+document.querySelectorAll('a,button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ cursor.style.transform+=` scale(2)`; ring.style.width='60px'; ring.style.height='60px'; });
+  el.addEventListener('mouseleave',()=>{ ring.style.width='36px'; ring.style.height='36px'; });
+});
+
+// ── Scroll reveal ────────────────────────────────────────
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting){
+      setTimeout(()=>e.target.classList.add('visible'), i*80);
+    }
+  });
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+// ── Counter animation ────────────────────────────────────
+function animateCounter(el, target, suffix){
+  let start=0, duration=1800;
+  const step = timestamp=>{
+    if(!step.start) step.start=timestamp;
+    const progress = Math.min((timestamp-step.start)/duration,1);
+    const ease = 1-Math.pow(1-progress,3);
+    const current = Math.floor(ease*target);
+    el.textContent = current + suffix;
+    if(progress<1) requestAnimationFrame(step);
+    else el.textContent = target + suffix;
+  };
+  requestAnimationFrame(step);
+}
+
+const statObs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting && !e.target.dataset.done){
+      e.target.dataset.done='1';
+      const target = parseInt(e.target.dataset.target);
+      const text   = e.target.textContent;
+      const suffix = text.includes('%') ? '%' : text.includes('s') ? 's' : '';
+      animateCounter(e.target, target, suffix);
+    }
+  });
+},{threshold:0.5});
+document.querySelectorAll('[data-target]').forEach(el=>statObs.observe(el));
+</script>
+</body>
+</html>

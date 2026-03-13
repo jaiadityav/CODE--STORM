@@ -1,0 +1,21 @@
+source,text,rating,date,sentiment,sentiment_score
+amazon,"The product quality is very poor. It broke after just 2 days of use.",1,2024-01-15,NEGATIVE,-0.8
+amazon,"Wrong size delivered. I ordered medium but received large. Very frustrating.",2,2024-01-14,NEGATIVE,-0.6
+amazon,"Excellent product! Works perfectly and delivery was fast.",5,2024-01-13,POSITIVE,0.9
+amazon,"Color does not match the product image at all. Looks completely different.",2,2024-01-12,NEGATIVE,-0.5
+amazon,"Packaging was completely damaged when it arrived. Box was crushed.",1,2024-01-11,NEGATIVE,-0.7
+amazon,"Good value for money. Satisfied with the purchase.",4,2024-01-10,POSITIVE,0.6
+amazon,"Stopped working after first use. Clearly a defective item.",1,2024-01-09,NEGATIVE,-0.9
+amazon,"The material feels very cheap and flimsy. Not worth the price.",2,2024-01-08,NEGATIVE,-0.6
+amazon,"Amazing product! Highly recommend to everyone.",5,2024-01-07,POSITIVE,0.95
+amazon,"Size chart is completely wrong. Way too small than mentioned.",2,2024-01-06,NEGATIVE,-0.5
+reddit,"Bought this from Amazon, the quality is terrible. Fell apart in a week.",0,2024-01-05,NEGATIVE,-0.7
+reddit,"Anyone else notice the color is totally different from the photos?",0,2024-01-04,NEGATIVE,-0.3
+reddit,"Great product, using it for months with no issues at all.",0,2024-01-03,POSITIVE,0.8
+reddit,"Delivery was delayed by 10 days and no response from seller.",0,2024-01-02,NEGATIVE,-0.6
+reddit,"The size runs very small. Order one size up definitely.",0,2024-01-01,NEGATIVE,-0.2
+flipkart,"Product is good but packaging was poor. Arrived dented.",3,2023-12-31,NEUTRAL,0.0
+flipkart,"Missing accessories in the box. Charger was not included.",1,2023-12-30,NEGATIVE,-0.5
+flipkart,"Worth every rupee! Great quality product.",5,2023-12-29,POSITIVE,0.85
+flipkart,"Customer service was very unhelpful when I raised a return request.",1,2023-12-28,NEGATIVE,-0.7
+flipkart,"The product description is misleading. Not as shown in the listing.",2,2023-12-27,NEGATIVE,-0.55
